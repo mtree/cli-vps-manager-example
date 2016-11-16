@@ -1,22 +1,13 @@
 #!/usr/bin/env node
 
-const Winston = require('winston');
 const Cli = require('structured-cli');
-
-// const job = require('../babel/job');
-// const configure = job.configure;
-// const run = job.run;
+const Chalk = require('chalk');
+const Winston = require('Winston');
 
 const cli = Cli.createApp({
-    prolog: 'h1 cli'
+    epilog: Chalk.bold('>login<') + ' to obtain apiKey' + '\n'
 });
 
-// configure();
-// run().then(credentials => {
-//   winston.log('info', 'Success!');
-//   winston.log('info', credentials);
-// }).catch(err => {
-//   winston.log('error', err);
-// });
+cli.addChild(require('./login'));
 
 Cli.run(cli)
