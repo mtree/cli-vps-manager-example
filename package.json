@@ -1,0 +1,22 @@
+{
+  "name": "h1-xplat-cli",
+  "version": "0.0.1",
+  "description": "",
+  "license": "MIT",
+  "author": "mtree <dawid.pregel@gmail.com>",
+  "main": "bin/h1.js",
+  "bin": {
+    "h1": "./bin/h1",
+    "h1-cli": "./bin/h1",
+    "h1-xplat-cli": "./bin/h1"
+  },
+  "scripts": {
+    "start": "npm run babel && ./bin/h1"
+  },
+  "dependencies": {
+    "structured-cli": "^1.0.5",
+    "winston": "^2.3.0"
+  },
+  "devDependencies": {},
+  "keywords": []
+}
