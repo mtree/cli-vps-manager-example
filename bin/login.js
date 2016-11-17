@@ -27,12 +27,29 @@ function loginHandler(args) {
 		if(_.isEmpty(output.apiKey)) {
 
 			inquirer.prompt(credentialsPrompt).then(function(credentials) {
-				api.getApiKey(credentials.username, credentials.password)
+				api.getApiKey(args.username ||credentials.username, credentials.password)
 					.then(function(response) {
-						logger('debug', util.inspect(response));
+						configFile.storeApiKey(response._id, response.expiry)
+							.then(function() {
+								logger('info', 'You successfully logged and stored your apiKey in config file');
+							})
+							.catch(function(e) {
+								throw e;
+							});
 					})
 					.catch(function (e) {
-						throw e;
+						switch (e.statusCode) {
+							case 404:
+								// unified messages for both: missing user and incorrect password
+								logger('error', 'Your login or password is incorrect');
+								break;
+							case 401:
+								logger('error', 'Your login or password is incorrect');
+								break;
+							default:
+								logger('error', 'We have a problem sir!');
+								throw e;
+						}
 					});
 			});
 		}

@@ -19,6 +19,7 @@
     "inquirer": "^1.2.3",
     "install": "^0.8.2",
     "lodash": "^4.17.2",
+    "moment": "^2.16.0",
     "npm": "^3.10.9",
     "request": "^2.78.0",
     "request-promise": "^4.1.1",
