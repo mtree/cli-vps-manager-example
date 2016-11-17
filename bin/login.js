@@ -5,6 +5,7 @@ const Api = require('../lib/api');
 const util = require('util');
 const _ = require('lodash');
 const inquirer = require('inquirer');
+const moment = require('moment');
 
 module.exports = Cli.createCommand('login', {
 	description: 'Obtain your apiKey',
@@ -24,10 +25,11 @@ function loginHandler(args) {
 	let credentialsPrompt;
 
 	configFile.load().then(function(output) {
-		if(_.isEmpty(output.apiKey)) {
+		// Retrieve new apiKey if not exist or outdated
+		if((_.isEmpty(output.apiKey)) || (!_.isEmpty(output.apiKey) && moment.utc(output.expires).isBefore())) {
 
 			inquirer.prompt(credentialsPrompt).then(function(credentials) {
-				api.getApiKey(args.username ||credentials.username, credentials.password)
+				api.getApiKey(args.username || credentials.username, credentials.password)
 					.then(function(response) {
 						configFile.storeApiKey(response._id, response.expiry)
 							.then(function() {
@@ -52,6 +54,8 @@ function loginHandler(args) {
 						}
 					});
 			});
+		} else {
+			logger('info', 'Your API key is already stored and you\'re ready to go!');
 		}
 
 	});
