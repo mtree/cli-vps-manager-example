@@ -2,11 +2,13 @@ const Cli = require('structured-cli');
 const Config = require('../lib/config');
 const logger = new require('../lib/logger')();
 const util = require('util');
+const _ = require('lodash');
+const inquirer = require('inquirer');
 
 module.exports = Cli.createCommand('login', {
 	description: 'Obtain your apiKey',
 	// plugins: [],
-	params: {
+	options: {
 		'username': {
 			description: 'Your h1 username',
 			type: 'string'
@@ -17,11 +19,28 @@ module.exports = Cli.createCommand('login', {
 
 function loginHandler(args) {
 	let configFile = new Config();
+	let questions;
 
 	configFile.load().then(function(output) {
-		logger('debug', output);
-		logger('debug', util.inspect(args));
+		if(_.isEmpty(output.apiKey) && _.isEmpty(args.username)) {
+
+			inquirer.prompt(questions).then(function (answers) {
+				logger('debug', util.inspect(answers));
+			});
+		}
+
 	});
 
-
+	questions = [
+		{
+			type: 'input',
+			name: 'username',
+			message: 'Your username'
+		},
+		{
+			type: 'password',
+			name: 'password',
+			message: 'Your password'
+		}
+	];
 }
