@@ -1,6 +1,7 @@
 const Cli = require('structured-cli');
 const Config = require('../lib/config');
 const logger = new require('../lib/logger')();
+const Api = require('../lib/api');
 const util = require('util');
 const _ = require('lodash');
 const inquirer = require('inquirer');
@@ -19,23 +20,31 @@ module.exports = Cli.createCommand('login', {
 
 function loginHandler(args) {
 	let configFile = new Config();
-	let questions;
+	let api = new Api();
+	let credentialsPrompt;
 
 	configFile.load().then(function(output) {
-		if(_.isEmpty(output.apiKey) && _.isEmpty(args.username)) {
+		if(_.isEmpty(output.apiKey)) {
 
-			inquirer.prompt(questions).then(function (answers) {
-				logger('debug', util.inspect(answers));
+			inquirer.prompt(credentialsPrompt).then(function(credentials) {
+				api.getApiKey(credentials.username, credentials.password)
+					.then(function(response) {
+						logger('debug', util.inspect(response));
+					})
+					.catch(function (e) {
+						throw e;
+					});
 			});
 		}
 
 	});
 
-	questions = [
+	credentialsPrompt = [
 		{
 			type: 'input',
 			name: 'username',
-			message: 'Your username'
+			message: 'Your username',
+			when: _.isEmpty(args.username)
 		},
 		{
 			type: 'password',
