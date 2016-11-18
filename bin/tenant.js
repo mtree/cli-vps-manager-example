@@ -28,7 +28,7 @@ function tenantHandler(args) {
 						if (el.active)
 							return {
 								value: el._id,
-								name: el.name + ' (' + el.billing.credits + el.billing.currency + ') (...' + el._id.substr(el._id.length - 5) + ')'
+								name: el.name + ' (' + el.billing.credits + el.billing.currency + ') (...' + el._id.slice(-5) + ')'
 							}
 					});
 				})
@@ -39,9 +39,19 @@ function tenantHandler(args) {
 							name: 'tenant',
 							message: 'Select your tenant',
 							choices: tenants
+							// 'when' for confirmation?
 						}
 					];
-					inquirer.prompt(tenantsPrompt);
+					inquirer.prompt(tenantsPrompt)
+						.then(function(answer) {
+							configFile.storeTenant(answer.tenant)
+							.then(function() {
+								logger('info', 'Tenant selected');
+							})
+							.catch(function(e) {
+								throw e;
+							});
+						});
 				});
 		}
 
