@@ -42,16 +42,20 @@ function tenantHandler(args) {
 							// 'when' for confirmation?
 						}
 					];
+
 					inquirer.prompt(tenantsPrompt)
 						.then(function(answer) {
 							configFile.storeTenant(answer.tenant)
-							.then(function() {
-								logger('info', 'Tenant selected');
-							})
-							.catch(function(e) {
-								throw e;
-							});
+								.then(function() {
+									logger('info', 'Tenant selected');
+								})
+								.catch(function(e) {
+									throw e;
+								});
 						});
+				})
+				.catch(function (e) {
+					throw e;
 				});
 		}
 
