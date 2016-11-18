@@ -8,5 +8,6 @@ const cli = Cli.createApp({
 });
 
 cli.addChild(require('./login'));
+cli.addChild(require('./tenant'));
 
 Cli.run(cli)

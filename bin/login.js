@@ -20,8 +20,8 @@ module.exports = Cli.createCommand('login', {
 });
 
 function loginHandler(args) {
-	let configFile = new Config();
-	let api = new Api();
+	const configFile = new Config();
+	const api = new Api();
 	let credentialsPrompt;
 
 	configFile.load().then(function(output) {
