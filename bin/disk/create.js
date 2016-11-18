@@ -11,30 +11,8 @@ const inquirer = require('inquirer');
 
 module.exports = Cli.createCommand('create', {
     description: 'Create disk',
-    // plugins: [
-    //     // require('../_plugins/profile'),
-    // ],
-    // optionGroups: {
-    //     'Synchronization options': {
-    //         interactive: {
-    //             alias: 'i',
-    //             description: 'Interactively prompt you for which packages to synchronize and which to leave untouched.',
-    //             type: 'boolean',
-    //         },
-    //     },
-    // },
-    // params: {
-    //     'filename': {
-    //         description: 'Path to the webtask\'s code.',
-    //         type: 'string',
-    //         defaultValue: Path.join(process.cwd(), 'webtask.js'),
-    //     },
-    // },
     handler: handleDiskCreate,
 });
-
-
-// Command handler
 
 function handleDiskCreate(args) {
     const configFile = new Config();
@@ -45,6 +23,8 @@ function handleDiskCreate(args) {
             // Retrieve new apiKey if not exist or outdated
             if((_.isEmpty(output.apiKey)) || (!_.isEmpty(output.apiKey) && moment.utc(output.expires).isBefore())) {
                 logger('info', 'Login first before you can obtain your tenants');
+            } else if(_.isEmpty(output.tenant)) {
+                logger('info', 'You need to select tenant before you can manage your resources');
             } else {
                 api.getDiskOptions(output.apiKey)
                     .then(function(res) {
@@ -59,7 +39,7 @@ function handleDiskCreate(args) {
                         let diskOptionsPrompt = [
                             {
                                 type: 'rawlist',
-                                name: 'diskOptions',
+                                name: 'diskType',
                                 message: 'Select your disk type',
                                 choices: diskOptions
                             },
@@ -76,13 +56,21 @@ function handleDiskCreate(args) {
                                 type: 'input',
                                 name: 'diskName',
                                 message: 'Type name for your new disk',
-
+                                validate: function (input) {
+                                    return _.isEmpty(input) ? 'Incorrect name' : true;
+                                }
                             }
                         ];
 
                         return inquirer.prompt(diskOptionsPrompt)
-                            .then(function(answer) {
-
+                            .then(function(answers) {
+                                api.createDisk(output.apiKey, output.tenant, answers.diskType, answers.diskSize, answers.diskName)
+                                    .then(function(res) {
+                                        logger('info', 'Your disk was successfully created')
+                                    })
+                                    .catch(function(e) {
+                                        logger('error', e.response.body.message);
+                                    });
                             });
                     })
                     .catch(function (e) {
