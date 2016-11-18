@@ -1,3 +1,5 @@
+'use strict';
+
 const Cli = require('structured-cli');
 const Config = require('../lib/config');
 const logger = new require('../lib/logger')();
@@ -32,7 +34,7 @@ function tenantHandler(args) {
 					});
 				})
 				.then(function(tenants) {
-					tenantsPrompt = [
+					let tenantsPrompt = [
 						{
 							type: 'rawlist',
 							name: 'tenant',

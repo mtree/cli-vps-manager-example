@@ -1,3 +1,5 @@
+'use strict';
+
 const Cli = require('structured-cli');
 const Config = require('../lib/config');
 const logger = new require('../lib/logger')();
