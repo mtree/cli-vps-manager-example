@@ -43,7 +43,7 @@ function tenantHandler(args) {
 						}
 					];
 
-					inquirer.prompt(tenantsPrompt)
+					return inquirer.prompt(tenantsPrompt)
 						.then(function(answer) {
 							configFile.storeTenant(answer.tenant)
 								.then(function() {
