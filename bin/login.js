@@ -31,7 +31,7 @@ function loginHandler(args) {
 			inquirer.prompt(credentialsPrompt).then(function(credentials) {
 				api.getApiKey(args.username || credentials.username, credentials.password)
 					.then(function(response) {
-						configFile.storeApiKey(response._id, response.expiry)
+						configFile.storeApiKey(response.body._id, response.body.expiry)
 							.then(function() {
 								logger('info', 'You successfully logged and stored your apiKey in config file');
 							})
@@ -40,7 +40,7 @@ function loginHandler(args) {
 							});
 					})
 					.catch(function (e) {
-						switch (e.statusCode) {
+						switch (e.status) {
 							case 404:
 								// unified messages for both: missing user and incorrect password
 								logger('error', 'Your login or password is incorrect');
