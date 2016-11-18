@@ -24,12 +24,11 @@ function tenantHandler(args) {
 		} else {
 			api.getTenants(output.apiKey)
 				.then(function(res) {
-					return _.map(res.body, function(el) {
-						if (el.active)
-							return {
-								value: el._id,
-								name: el.name + ' (' + el.billing.credits + el.billing.currency + ') (...' + el._id.slice(-5) + ')'
-							}
+					return res.body.filter(el => el.active).map(function(el) {
+						return {
+							value: el._id,
+							name: el.name + ' (' + el.billing.credits + el.billing.currency + ') (...' + el._id.slice(-5) + ')'
+						};
 					});
 				})
 				.then(function(tenants) {
