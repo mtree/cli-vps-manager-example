@@ -1,66 +1,46 @@
 'use strict';
 
 const Cli = require('structured-cli');
-const Config = require('../lib/config');
+const configFile = require('../lib/config');
 const logger = new require('../lib/logger')();
 const Api = require('../lib/api');
-const util = require('util');
-const _ = require('lodash');
 const inquirer = require('inquirer');
-const moment = require('moment');
-
 
 module.exports = Cli.createCommand('tenant', {
-	description: 'Pick subscribed tenant',
-	handler: tenantHandler
+    description: 'Pick subscribed tenant',
+    plugins: [
+        require('./_plugins/loginRequired')
+    ],
+    handler: tenantHandler
 });
 
 function tenantHandler(args) {
-	const configFile = new Config();
-	const api = new Api();
+    const api = new Api(args.profile);
 
+    return api.getTenants()
+        .then(function(res) {
+            return res.filter(el => el.active).map(function(el) {
+                return {
+                    value: el._id,
+                    name: `${el.name} (${el.billing.credits}${el.billing.currency}) (...${el._id.slice(-5)})`
+                };
+            });
+        })
+        .then(function(tenants) {
+            const tenantsPrompt = [
+                {
+                    type: 'rawlist',
+                    name: 'tenant',
+                    message: 'Select your tenant',
+                    choices: tenants
+                    // 'when' for confirmation?
+                }
+            ];
 
-	configFile.load().then(function(output) {
-		if((_.isEmpty(output.apiKey)) || (!_.isEmpty(output.apiKey) && moment.utc(output.expires).isBefore())) {
-			logger('info', 'Login first before you can obtain your tenants');
-		} else {
-			api.getTenants(output.apiKey)
-				.then(function(res) {
-					return res.body.filter(el => el.active).map(function(el) {
-						return {
-							value: el._id,
-							name: el.name + ' (' + el.billing.credits + el.billing.currency + ') (...' + el._id.slice(-5) + ')'
-						};
-					});
-				})
-				.then(function(tenants) {
-					let tenantsPrompt = [
-						{
-							type: 'rawlist',
-							name: 'tenant',
-							message: 'Select your tenant',
-							choices: tenants
-							// 'when' for confirmation?
-						}
-					];
-
-					return inquirer.prompt(tenantsPrompt)
-						.then(function(answer) {
-							configFile.storeTenant(answer.tenant)
-								.then(function() {
-									logger('info', 'Tenant selected');
-								})
-								.catch(function(e) {
-									throw e;
-								});
-						});
-				})
-				.catch(function (e) {
-					throw e;
-				});
-		}
-
-	});
-
-
+            return inquirer.prompt(tenantsPrompt)
+                .then(function(answer) {
+                    return configFile.storeTenant(answer.tenant)
+                        .then(() => logger('info', 'Tenant selected'));
+                });
+        });
 }

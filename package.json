@@ -16,6 +16,8 @@
   "dependencies": {
     "bluebird": "^3.4.6",
     "chalk": "^1.1.3",
+    "cli-table": "^0.3.1",
+    "cookie": "^0.3.1",
     "inquirer": "^1.2.3",
     "install": "^0.8.2",
     "lodash": "^4.17.2",
@@ -23,11 +25,7 @@
     "npm": "^3.10.9",
     "structured-cli": "^1.0.5",
     "superagent": "^2.3.0",
-    "superagent-promise": "^1.1.0",
     "winston": "^2.3.0"
-  },
-  "devDependencies": {
-    "lodash": "^4.17.2"
   },
   "keywords": []
 }

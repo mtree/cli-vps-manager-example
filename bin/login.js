@@ -1,78 +1,65 @@
 'use strict';
 
 const Cli = require('structured-cli');
-const Config = require('../lib/config');
 const logger = new require('../lib/logger')();
 const Api = require('../lib/api');
-const util = require('util');
 const _ = require('lodash');
 const inquirer = require('inquirer');
-const moment = require('moment');
+
+const options = {
+    'username': {
+        description: 'Your username',
+        type: 'string',
+        defaultValue: (context) => {
+            return inquirer.prompt({
+                type: 'input',
+                name: 'value',
+                message: 'Your username:',
+                validate: input =>_.isEmpty(input) ? 'Incorrect name' : true
+            });
+        }
+    },
+    'password': {
+        description: 'Your password',
+        type: 'string',
+        defaultValue: (context) => {
+            return inquirer.prompt({
+                type: 'password',
+                name: 'value',
+                message: 'Your password:',
+                validate: input =>_.isEmpty(input) ? 'Incorrect name' : true
+            });
+        }
+    }
+};
 
 module.exports = Cli.createCommand('login', {
-	description: 'Obtain your apiKey',
-	// plugins: [],
-	options: {
-		'username': {
-			description: 'Your h1 username',
-			type: 'string'
-		}
-	},
-	handler: loginHandler
+    description: 'Obtain your apiKey',
+    plugins: [
+        require('./_plugins/interactiveOptions')
+    ],
+    options: options,
+    handler: loginHandler
 });
 
 function loginHandler(args) {
-	const configFile = new Config();
-	const api = new Api();
-	let credentialsPrompt;
+    const api = new Api();
 
-	configFile.load().then(function(output) {
-		// Retrieve new apiKey if not exist or outdated
-		if((_.isEmpty(output.apiKey)) || (!_.isEmpty(output.apiKey) && moment.utc(output.expires).isBefore())) {
+    return api.getApiKey(args.username, args.password)
+        .then(() => logger('info', 'You successfully logged and stored your apiKey in config file'))
+        .catch(function (e) {
+            switch (e.status) {
+                case 404:
+                    // unified messages for both: missing user and incorrect password
+                    logger('error', `Your login or password is incorrect (${e.status})`);
+                    break;
+                case 401:
+                    logger('error', `Your login or password is incorrect (${e.status})`);
+                    break;
+                default:
+                    logger('error', 'We have a problem sir!');
+                    throw e;
+            }
+        });
 
-			inquirer.prompt(credentialsPrompt).then(function(credentials) {
-				api.getApiKey(args.username || credentials.username, credentials.password)
-					.then(function(response) {
-						configFile.storeApiKey(response.body._id, response.body.expiry)
-							.then(function() {
-								logger('info', 'You successfully logged and stored your apiKey in config file');
-							})
-							.catch(function(e) {
-								throw e;
-							});
-					})
-					.catch(function (e) {
-						switch (e.status) {
-							case 404:
-								// unified messages for both: missing user and incorrect password
-								logger('error', 'Your login or password is incorrect');
-								break;
-							case 401:
-								logger('error', 'Your login or password is incorrect');
-								break;
-							default:
-								logger('error', 'We have a problem sir!');
-								throw e;
-						}
-					});
-			});
-		} else {
-			logger('info', 'Your API key is already stored and you\'re ready to go!');
-		}
-
-	});
-
-	credentialsPrompt = [
-		{
-			type: 'input',
-			name: 'username',
-			message: 'Your username',
-			when: _.isEmpty(args.username)
-		},
-		{
-			type: 'password',
-			name: 'password',
-			message: 'Your password'
-		}
-	];
 }
